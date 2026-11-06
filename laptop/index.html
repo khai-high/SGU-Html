@@ -1,0 +1,286 @@
+
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LAPTOP STORE - Cửa hàng laptop</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="header">
+    <div class="logo">LAPTOP<span>STORE</span></div>
+
+    <nav class="navbar">
+        <a href="#home" onclick="showSection('home')">Trang chủ</a>
+        <a href="#products" onclick="showSection('products')">Sản phẩm</a>
+        <a href="#cart" onclick="showSection('cart')">Giỏ hàng</a>
+        <a href="#invoices" onclick="showSection('invoices')">Hóa đơn</a>
+        <a href="#management" onclick="showSection('management')">Quản lý</a>
+        <a href="#statistics" onclick="showSection('statistics')">Thống kê</a>
+    </nav>
+
+    <div class="header-right">
+        <button id="loginBtn" class="btn-login">Đăng nhập</button>
+        <button id="registerBtn" class="btn-login">Đăng ký</button>
+        <button id="logoutBtn" class="btn-login hidden">Đăng xuất</button>
+        <button class="cart-button" onclick="showSection('cart')">
+            🛒 <span id="cartCount">0</span>
+        </button>
+    </div>
+</header>
+
+<main>
+
+    <section id="home" class="section hero">
+        <div class="hero-content">
+            <p class="tagline">LAPTOP CHÍNH HÃNG - GIÁ TỐT</p>
+            <h1>Khám phá thế giới<br><span>Laptop hiện đại</span></h1>
+            <p>
+                Cung cấp laptop dành cho học tập,
+                làm việc, thiết kế và gaming.
+            </p>
+            <button class="btn-primary" onclick="showSection('products')">
+                Mua sắm ngay
+            </button>
+        </div>
+
+        <div class="hero-image">
+            <img src="image/acer-aspire.jpg" alt="Laptop nổi bật">
+        </div>
+    </section>
+
+    <section class="categories">
+        <h2>Danh mục sản phẩm</h2>
+        <div class="category-list">
+            <button onclick="filterCategory('all')">Tất cả</button>
+            <button onclick="filterCategory('office')">Văn phòng</button>
+            <button onclick="filterCategory('gaming')">Gaming</button>
+            <button onclick="filterCategory('apple')">MacBook</button>
+        </div>
+    </section>
+
+    <section id="products" class="section">
+        <div class="section-heading">
+            <div>
+                <h2>Sản phẩm nổi bật</h2>
+                <p>Khám phá 15 mẫu laptop tại Laptop Store</p>
+            </div>
+        </div>
+
+        <div class="search-area">
+            <input type="text" id="searchInput"
+                   placeholder="Tìm kiếm tên laptop...">
+
+            <select id="sortPrice">
+                <option value="default">Sắp xếp mặc định</option>
+                <option value="asc">Giá thấp đến cao</option>
+                <option value="desc">Giá cao đến thấp</option>
+            </select>
+        </div>
+
+        <div id="productList" class="product-grid"></div>
+    </section>
+
+    <section id="cart" class="section hidden">
+        <h2>Giỏ hàng của bạn</h2>
+        <div id="cartList"></div>
+
+        <div class="cart-total">
+            <h3>Tổng tiền: <span id="cartTotal">0 ₫</span></h3>
+            <button class="btn-primary" onclick="checkout()">
+                Thanh toán
+            </button>
+        </div>
+    </section>
+
+    <section id="invoices" class="section hidden">
+        <h2>Quản lý hóa đơn</h2>
+        <div class="table-wrapper">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Mã hóa đơn</th>
+                        <th>Khách hàng</th>
+                        <th>Ngày tạo</th>
+                        <th>Tổng tiền</th>
+                        <th>Chi tiết</th>
+                    </tr>
+                </thead>
+                <tbody id="invoiceList"></tbody>
+            </table>
+        </div>
+    </section>
+
+    <section id="management" class="section hidden">
+        <h2>Hệ thống quản lý</h2>
+
+        <div class="management-menu">
+            <button onclick="showManagement('productManagement')">
+                Quản lý sản phẩm
+            </button>
+            <button onclick="showManagement('customerManagement')">
+                Quản lý khách hàng
+            </button>
+            <button onclick="showManagement('employeeManagement')">
+                Quản lý nhân viên
+            </button>
+        </div>
+
+        <div id="productManagement" class="management-content">
+            <h3>Danh sách sản phẩm</h3>
+
+            <div class="admin-form">
+                <input id="newName" placeholder="Tên laptop">
+                <input id="newPrice" type="number" min="1" placeholder="Giá bán">
+                <input id="newImage" placeholder="Tên ảnh, ví dụ: image/acer.jpg">
+                <input id="newBrand" placeholder="Thương hiệu">
+                <input id="newCPU" placeholder="CPU">
+                <input id="newRAM" placeholder="RAM">
+                <input id="newStorage" placeholder="Ổ cứng">
+
+                <button class="btn-primary" onclick="addProduct()">
+                    Thêm sản phẩm
+                </button>
+            </div>
+
+            <div id="adminProductList"></div>
+        </div>
+
+        <div id="customerManagement" class="management-content hidden">
+            <h3>Danh sách khách hàng</h3>
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>STT</th>
+                            <th>Họ tên</th>
+                            <th>Số điện thoại</th>
+                            <th>Email</th>
+                        </tr>
+                    </thead>
+                    <tbody id="customerList"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <div id="employeeManagement" class="management-content hidden">
+            <h3>Danh sách nhân viên</h3>
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Mã NV</th>
+                            <th>Họ tên</th>
+                            <th>Chức vụ</th>
+                            <th>Số điện thoại</th>
+                        </tr>
+                    </thead>
+                    <tbody id="employeeList"></tbody>
+                </table>
+            </div>
+        </div>
+    </section>
+
+    <section id="statistics" class="section hidden">
+        <h2>Thống kê kinh doanh</h2>
+
+        <div class="stat-grid">
+            <div class="stat-card">
+                <p>Tổng sản phẩm</p>
+                <h3 id="totalProducts">15</h3>
+            </div>
+            <div class="stat-card">
+                <p>Tổng hóa đơn</p>
+                <h3 id="totalInvoices">0</h3>
+            </div>
+            <div class="stat-card">
+                <p>Tổng doanh thu</p>
+                <h3 id="totalRevenue">0 ₫</h3>
+            </div>
+            <div class="stat-card">
+                <p>Khách hàng</p>
+                <h3 id="totalCustomers">0</h3>
+            </div>
+        </div>
+    </section>
+
+</main>
+
+<!-- ĐĂNG NHẬP -->
+<div id="loginModal" class="modal hidden">
+    <div class="modal-content">
+        <button class="close-modal" onclick="closeLogin()">×</button>
+        <h2>Đăng nhập hệ thống</h2>
+
+        <input id="username" placeholder="Tên đăng nhập">
+        <input id="password" type="password" placeholder="Mật khẩu">
+
+        <button class="btn-primary full-width" onclick="login()">
+            Đăng nhập
+        </button>
+
+        <p id="loginMessage"></p>
+        <small>Tài khoản demo: admin / 123456</small>
+    </div>
+</div>
+
+<!-- ĐĂNG KÝ -->
+<div id="registerModal" class="modal hidden">
+    <div class="modal-content">
+        <button class="close-modal" onclick="closeRegister()">×</button>
+        <h2>Đăng ký tài khoản</h2>
+
+        <input id="registerFullName" placeholder="Họ và tên">
+        <input id="registerUsername" placeholder="Tên đăng nhập">
+        <input id="registerEmail" type="email" placeholder="Email">
+        <input id="registerPassword" type="password" placeholder="Mật khẩu">
+        <input id="confirmPassword" type="password" placeholder="Nhập lại mật khẩu">
+
+        <button class="btn-primary full-width" onclick="register()">
+            Đăng ký
+        </button>
+
+        <p id="registerMessage"></p>
+    </div>
+</div>
+
+<!-- THANH TOÁN -->
+<div id="checkoutModal" class="modal hidden">
+    <div class="modal-content">
+        <button class="close-modal" onclick="closeCheckout()">×</button>
+        <h2>Thông tin thanh toán</h2>
+
+        <input id="customerName" placeholder="Họ tên khách hàng">
+        <input id="customerPhone" type="tel" placeholder="Số điện thoại">
+        <input id="customerEmail" type="email" placeholder="Email">
+
+        <div id="checkoutTotal" class="checkout-total"></div>
+
+        <button class="btn-primary full-width" onclick="confirmCheckout()">
+            Xác nhận đặt hàng
+        </button>
+    </div>
+</div>
+
+<!-- CHI TIẾT HÓA ĐƠN -->
+<div id="invoiceModal" class="modal hidden">
+    <div class="modal-content invoice-content">
+        <button class="close-modal" onclick="closeInvoice()">×</button>
+        <div id="invoiceDetail"></div>
+        <button class="btn-primary" onclick="window.print()">
+            In hóa đơn
+        </button>
+    </div>
+</div>
+
+<footer>
+    <h2>LAPTOP STORE</h2>
+    <p>Chuyên cung cấp laptop chính hãng</p>
+    <p>© 2026 Laptop Store. All rights reserved.</p>
+</footer>
+
+<script src="app.js"></script>
+</body>
+</html>
