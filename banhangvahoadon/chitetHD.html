@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>Chi tiết hóa đơn</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<div class="menu">
+    <a href="ban-hang.html">Bán hàng</a>
+    <a href="hoa-don.html">Hóa đơn</a>
+</div>
+
+<div class="wrap">
+    <div class="box invoice" id="invoice-box"></div>
+    <div class="no-print">
+        <a class="btn" href="hoa-don.html">Danh sách hóa đơn</a>
+        <button onclick="window.print()">In hóa đơn</button>
+    </div>
+</div>
+
+<script src="js/app.js"></script>
+<script>
+    // Lấy mã hóa đơn từ địa chỉ trang: chi-tiet-hoa-don.html?id=5
+    const id = new URLSearchParams(location.search).get('id');
+    const o = findOrder(id);
+
+    if (!o) {
+        alert('Không tìm thấy hóa đơn.');
+        location.href = 'hoa-don.html';
+    } else {
+        let html = '<h1>HÓA ĐƠN BÁN HÀNG</h1>' +
+            '<p><b>Số:</b> ' + invoiceCode(o.id) + '</p>' +
+            '<p><b>Ngày lập:</b> ' + formatDate(o.created_at) + '</p>' +
+            '<p><b>Khách hàng:</b> ' + escapeHtml(o.customer_name) + '</p>' +
+            '<p><b>Điện thoại:</b> ' + escapeHtml(o.phone) + '</p>' +
+            '<p><b>Địa chỉ:</b> ' + escapeHtml(o.address) + '</p>' +
+            '<p><b>Thanh toán:</b> ' + escapeHtml(o.payment_method) + '</p>' +
+            '<p><b>Trạng thái:</b> ' + escapeHtml(o.status) + '</p>' +
+            (o.note ? '<p><b>Ghi chú:</b> ' + escapeHtml(o.note) + '</p>' : '') +
+            '<br><table><tr><th class="center">STT</th><th>Tên sản phẩm</th><th class="right">Đơn giá</th>' +
+            '<th class="center">SL</th><th class="right">Thành tiền</th></tr>';
+
+        o.items.forEach(function (it, i) {
+            html += '<tr><td class="center">' + (i + 1) + '</td>' +
+                '<td>' + escapeHtml(it.product_name) + '</td>' +
+                '<td class="right">' + formatPrice(it.price) + '</td>' +
+                '<td class="center">' + it.quantity + '</td>' +
+                '<td class="right">' + formatPrice(it.price * it.quantity) + '</td></tr>';
+        });
+
+        html += '</table><div class="total">Tổng thanh toán: <b>' + formatPrice(o.total) + '</b></div>';
+        document.getElementById('invoice-box').innerHTML = html;
+    }
+</script>
+</body>
+</html>

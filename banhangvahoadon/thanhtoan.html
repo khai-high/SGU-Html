@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>Thanh toán</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<div class="menu">
+    <a href="ban-hang.html">Bán hàng</a>
+    <a href="hoa-don.html">Hóa đơn</a>
+</div>
+
+<div class="wrap">
+    <h1>Thanh toán</h1>
+    <div id="errors"></div>
+
+    <div class="row">
+        <!-- Thông tin khách hàng -->
+        <form class="col box form" id="checkout-form">
+            <h2>Thông tin khách hàng</h2>
+
+            <label>Họ và tên (*)</label>
+            <input type="text" id="customer_name">
+
+            <label>Số điện thoại (*)</label>
+            <input type="text" id="phone" placeholder="0912345678">
+
+            <label>Địa chỉ (*)</label>
+            <input type="text" id="address">
+
+            <label>Ghi chú</label>
+            <input type="text" id="note">
+
+            <label>Phương thức thanh toán</label>
+            <select id="payment_method">
+                <option>Tiền mặt</option>
+                <option>Chuyển khoản</option>
+            </select>
+
+            <a class="btn" href="ban-hang.html">Quay lại</a>
+            <button type="submit">Đặt hàng</button>
+        </form>
+
+        <!-- Tóm tắt đơn hàng -->
+        <div class="col box">
+            <h2>Đơn hàng</h2>
+            <div id="summary"></div>
+        </div>
+    </div>
+</div>
+
+<script src="js/app.js"></script>
+<script>
+    // Giỏ trống thì quay về trang bán hàng
+    if (getCartItems().length === 0) {
+        alert('Giỏ hàng trống, hãy chọn sản phẩm trước.');
+        location.href = 'ban-hang.html';
+    }
+
+    // Vẽ tóm tắt đơn hàng
+    let html = '<table><tr><th>Sản phẩm</th><th class="center">SL</th><th class="right">Thành tiền</th></tr>';
+    getCartItems().forEach(function (it) {
+        html += '<tr><td>' + escapeHtml(it.name) + '</td><td class="center">' + it.qty +
+                '</td><td class="right">' + formatPrice(it.money) + '</td></tr>';
+    });
+    html += '</table><div class="total">Tổng cộng: <b>' + formatPrice(cartTotal()) + '</b></div>';
+    document.getElementById('summary').innerHTML = html;
+
+    // ---------- Khi bấm "Đặt hàng" ----------
+    document.getElementById('checkout-form').addEventListener('submit', function (event) {
+        event.preventDefault();   // chặn trình duyệt tải lại trang
+
+        const name    = document.getElementById('customer_name').value.trim();
+        const phone   = document.getElementById('phone').value.trim();
+        const address = document.getElementById('address').value.trim();
+        const note    = document.getElementById('note').value.trim();
+        const payment = document.getElementById('payment_method').value;
+
+        // Bước 1: kiểm tra dữ liệu nhập
+        const errors = [];
+        if (name === '')    errors.push('Vui lòng nhập họ tên.');
+        if (!/^0[0-9]{9}$/.test(phone)) errors.push('Số điện thoại phải gồm 10 chữ số và bắt đầu bằng 0.');
+        if (address === '') errors.push('Vui lòng nhập địa chỉ.');
+
+        // Bước 2: kiểm tra tồn kho
+        const items = getCartItems();
+        items.forEach(function (it) {
+            if (it.qty > it.stock) {
+                errors.push('Sản phẩm "' + it.name + '" chỉ còn ' + it.stock + ' cái.');
+            }
+        });
+
+        if (errors.length > 0) {
+            document.getElementById('errors').innerHTML =
+                errors.map(e => '<div class="error">' + escapeHtml(e) + '</div>').join('');
+            return;
+        }
+
+        // Bước 3: tạo hóa đơn (mã = mã lớn nhất hiện có + 1)
+        const orders = getOrders();
+        const newId = orders.length === 0 ? 1 : Math.max(...orders.map(o => o.id)) + 1;
+
+        orders.push({
+            id: newId,
+            customer_name: name,
+            phone: phone,
+            address: address,
+            note: note,
+            payment_method: payment,
+            total: cartTotal(),
+            status: 'Chờ xác nhận',
+            created_at: new Date().toISOString(),
+            // Lưu tên + giá tại thời điểm mua để sau này đổi giá, hóa đơn cũ vẫn đúng
+            items: items.map(it => ({ product_id: it.id, product_name: it.name, price: it.price, quantity: it.qty }))
+        });
+        saveOrders(orders);
+
+        // Bước 4: trừ tồn kho
+        const products = getProducts();
+        items.forEach(function (it) {
+            products.find(p => p.id === it.id).stock -= it.qty;
+        });
+        setData('products', products);
+
+        // Bước 5: xóa giỏ hàng, chuyển sang xem hóa đơn
+        saveCart({});
+        location.href = 'chi-tiet-hoa-don.html?id=' + newId;
+    });
+</script>
+</body>
+</html>

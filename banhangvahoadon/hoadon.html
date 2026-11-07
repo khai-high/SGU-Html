@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>Danh sách hóa đơn</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<div class="menu">
+    <a href="ban-hang.html">Bán hàng</a>
+    <a href="hoa-don.html">Hóa đơn</a>
+</div>
+
+<div class="wrap">
+    <h1>Danh sách hóa đơn</h1>
+
+    <div class="search">
+        <input type="text" id="keyword" placeholder="Tìm theo tên hoặc số điện thoại...">
+    </div>
+
+    <div class="box" id="orders-box"></div>
+</div>
+
+<script src="js/app.js"></script>
+<script>
+    const STATUSES = ['Chờ xác nhận', 'Đang giao', 'Hoàn thành', 'Đã hủy'];
+    const keywordInput = document.getElementById('keyword');
+
+    function showOrders() {
+        const keyword = keywordInput.value.trim().toLowerCase();
+
+        // Lọc theo tên hoặc SĐT, hóa đơn mới nhất lên đầu
+        const orders = getOrders()
+            .filter(o => o.customer_name.toLowerCase().includes(keyword) || o.phone.includes(keyword))
+            .sort((a, b) => b.id - a.id);
+
+        const box = document.getElementById('orders-box');
+        if (orders.length === 0) {
+            box.innerHTML = '<p>Chưa có hóa đơn nào.</p>';
+            return;
+        }
+
+        let html = '<table><tr><th>Mã HĐ</th><th>Khách hàng</th><th>SĐT</th><th>Ngày lập</th>' +
+                   '<th class="right">Tổng tiền</th><th>Trạng thái</th><th></th></tr>';
+        orders.forEach(function (o) {
+            html += '<tr>' +
+                '<td>' + invoiceCode(o.id) + '</td>' +
+                '<td>' + escapeHtml(o.customer_name) + '</td>' +
+                '<td>' + escapeHtml(o.phone) + '</td>' +
+                '<td>' + formatDate(o.created_at) + '</td>' +
+                '<td class="right">' + formatPrice(o.total) + '</td>' +
+                '<td>' + statusCell(o) + '</td>' +
+                '<td class="center"><a href="chi-tiet-hoa-don.html?id=' + o.id + '">Xem</a></td>' +
+                '</tr>';
+        });
+        html += '</table><div class="total">Tổng doanh thu: <b>' + formatPrice(revenue()) + '</b></div>';
+        box.innerHTML = html;
+    }
+
+    // Đơn đã hủy thì chỉ hiện chữ, các đơn khác cho chọn trạng thái
+    function statusCell(o) {
+        if (o.status === 'Đã hủy') return 'Đã hủy';
+        let html = '<select onchange="changeStatus(' + o.id + ', this.value)">';
+        STATUSES.forEach(function (s) {
+            html += '<option' + (s === o.status ? ' selected' : '') + '>' + s + '</option>';
+        });
+        return html + '</select>';
+    }
+
+    // Đổi trạng thái hóa đơn
+    function changeStatus(id, newStatus) {
+        const orders = getOrders();
+        const order = orders.find(o => o.id === id);
+
+        if (newStatus === 'Đã hủy') {
+            if (!confirm('Hủy hóa đơn ' + invoiceCode(id) + '? Hàng sẽ được hoàn lại kho.')) {
+                showOrders();
+                return;
+            }
+            // Hoàn lại tồn kho
+            const products = getProducts();
+            order.items.forEach(function (it) {
+                const p = products.find(x => x.id === it.product_id);
+                if (p) p.stock += it.quantity;
+            });
+            setData('products', products);
+        }
+
+        order.status = newStatus;
+        saveOrders(orders);
+        showOrders();
+    }
+
+    // Tổng doanh thu (không tính đơn đã hủy)
+    function revenue() {
+        return getOrders().filter(o => o.status !== 'Đã hủy').reduce((sum, o) => sum + o.total, 0);
+    }
+
+    keywordInput.addEventListener('input', showOrders);
+    showOrders();
+</script>
+</body>
+</html>
