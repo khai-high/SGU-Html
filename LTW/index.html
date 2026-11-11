@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Laptop Store</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="site-header">
+  <a class="logo" href="#" onclick="showSection('home')">LAPTOP<span>STORE</span></a>
+  <nav>
+    <a href="#" onclick="showSection('home')">Trang chủ</a>
+    <a href="#" onclick="showSection('products')">Sản phẩm</a>
+    <a href="#" onclick="showSection('cart')">Giỏ hàng <b id="cartCount">0</b></a>
+    <a href="#" onclick="showSection('myOrders')">Đơn mua</a>
+    <a href="#" id="adminNav" class="hidden" onclick="showSection('admin')">Quản trị</a>
+  </nav>
+  <div class="account">
+    <span id="welcome"></span>
+    <button id="loginOpen" class="btn small">Đăng nhập</button>
+    <button id="registerOpen" class="btn small secondary">Đăng ký</button>
+    <button id="profileOpen" class="btn small hidden">Tài khoản</button>
+    <button id="logout" class="btn small danger hidden">Đăng xuất</button>
+  </div>
+</header>
+
+<main>
+  <section id="home" class="page hero">
+    <div>
+      <p class="eyebrow">LAPTOP CHÍNH HÃNG - GIÁ TỐT</p>
+      <h1>Công nghệ cho<br><span>mọi hành trình</span></h1>
+      <p>Lựa chọn laptop phù hợp cho học tập, làm việc và giải trí.</p>
+      <button class="btn" onclick="showSection('products')">Khám phá sản phẩm</button>
+    </div>
+    <img src="image/acer-aspire.jpg" alt="Laptop nổi bật" onerror="this.src='https://placehold.co/600x400?text=Laptop+Store'">
+  </section>
+
+  <section class="category-strip">
+    <h2>Danh mục sản phẩm</h2>
+    <div id="categoryButtons" class="category-buttons"></div>
+  </section>
+
+  <section id="products" class="page hidden">
+    <h2>Sản phẩm laptop</h2>
+    <div class="shop-layout">
+      <button class="btn secondary filter-toggle" onclick="document.getElementById('filterPanel').classList.toggle('open')">☰ Bộ lọc nâng cao</button>
+      <aside id="filterPanel" class="filter-panel">
+        <div class="filter-head"><strong>Bộ lọc nâng cao</strong><button class="link-btn" onclick="resetFilters()">Xóa tất cả</button></div>
+        <div class="filter-group">
+          <h4>Danh mục</h4>
+          <select id="filterCategory" onchange="searchProducts()"><option value="all">Tất cả danh mục</option></select>
+        </div>
+        <div class="filter-group">
+          <h4>Khoảng giá (₫)</h4>
+          <div class="price-row">
+            <input id="priceMin" type="number" min="0" placeholder="Từ" oninput="searchProducts()">
+            <input id="priceMax" type="number" min="0" placeholder="Đến" oninput="searchProducts()">
+          </div>
+          <div class="presets">
+            <button onclick="setPrice(0,15000000)">Dưới 15tr</button>
+            <button onclick="setPrice(15000000,25000000)">15 - 25tr</button>
+            <button onclick="setPrice(25000000,35000000)">25 - 35tr</button>
+            <button onclick="setPrice(35000000,0)">Trên 35tr</button>
+          </div>
+        </div>
+        <div class="filter-group"><h4>Thương hiệu</h4><div id="facetBrand"></div></div>
+        <div class="filter-group"><h4>CPU / Chip</h4><div id="facetCPU"></div></div>
+        <div class="filter-group"><h4>RAM</h4><div id="facetRAM"></div></div>
+        <div class="filter-group"><h4>Ổ cứng</h4><div id="facetStorage"></div></div>
+        <div class="filter-group">
+          <label class="check"><input type="checkbox" id="inStock" onchange="searchProducts()"><span>Chỉ hiện sản phẩm còn hàng</span></label>
+        </div>
+      </aside>
+      <div class="shop-main">
+        <div class="shop-top">
+          <input id="searchName" placeholder="Tìm theo tên, hãng, CPU, mã sản phẩm..." oninput="searchProducts()">
+          <select id="sortPrice" onchange="searchProducts()">
+            <option value="none">Sắp xếp mặc định</option>
+            <option value="asc">Giá tăng dần</option>
+            <option value="desc">Giá giảm dần</option>
+            <option value="ram">RAM cao nhất</option>
+            <option value="storage">Ổ cứng lớn nhất</option>
+          </select>
+        </div>
+        <div id="resultCount" class="result-count"></div>
+        <div id="activeChips" class="chips"></div>
+        <div id="productGrid" class="product-grid"></div>
+    <div id="productPages" class="pagination"></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="detail" class="page hidden">
+    <button class="btn secondary" onclick="showSection('products')">← Quay lại</button>
+    <div id="detailContent"></div>
+  </section>
+
+  <section id="cart" class="page hidden">
+    <h2>Giỏ hàng</h2>
+    <div id="cartContent"></div>
+    <div class="cart-summary">
+      <strong id="cartTotal">Tổng tiền: 0 ₫</strong>
+      <button class="btn" onclick="startCheckout()">Đặt hàng</button>
+    </div>
+  </section>
+
+  <section id="myOrders" class="page hidden">
+    <h2>Đơn hàng đã mua</h2>
+    <div id="myOrdersContent"></div>
+  </section>
+
+  <section id="admin" class="page hidden">
+    <h2>Khu vực quản trị</h2>
+    <div class="admin-tabs">
+      <button onclick="adminTab('customers')">Khách hàng</button>
+      <button onclick="adminTab('categories')">Loại sản phẩm</button>
+      <button onclick="adminTab('productsAdmin')">Sản phẩm</button>
+      <button onclick="adminTab('imports')">Nhập hàng</button>
+      <button onclick="adminTab('prices')">Giá bán</button>
+      <button onclick="adminTab('orders')">Đơn hàng</button>
+      <button onclick="adminTab('inventory')">Tồn kho</button>
+      <button onclick="adminTab('stats')">Thống kê</button>
+    </div>
+
+    <div id="customers" class="admin-panel">
+      <h3>Quản lý khách hàng</h3>
+      <div id="customerTable"></div>
+    </div>
+
+    <div id="categories" class="admin-panel hidden">
+      <h3>Quản lý loại sản phẩm</h3>
+      <div class="form-row">
+        <input id="catCode" placeholder="Mã loại">
+        <input id="catName" placeholder="Tên loại">
+        <button class="btn" onclick="addCategory()">Thêm loại</button>
+      </div>
+      <div id="categoryTable"></div>
+    </div>
+
+    <div id="productsAdmin" class="admin-panel hidden">
+      <h3>Quản lý sản phẩm</h3>
+      <input id="editProductId" type="hidden">
+      <div class="form-grid">
+        <input id="pCode" placeholder="Mã sản phẩm">
+        <input id="pName" placeholder="Tên sản phẩm">
+        <select id="pCategory"></select>
+        <input id="pBrand" placeholder="Thương hiệu">
+        <input id="pPrice" type="number" min="1" placeholder="Giá bán">
+        <input id="pImage" placeholder="Đường dẫn hình ảnh">
+        <input id="pCPU" placeholder="CPU">
+        <input id="pRAM" placeholder="RAM">
+        <input id="pStorage" placeholder="Ổ cứng">
+        <textarea id="pDescription" placeholder="Mô tả sản phẩm"></textarea>
+      </div>
+      <button class="btn" onclick="saveProduct()">Lưu sản phẩm</button>
+      <button class="btn secondary" onclick="resetProductForm()">Làm mới</button>
+      <div id="productAdminTable"></div>
+    </div>
+
+    <div id="imports" class="admin-panel hidden">
+      <h3>Quản lý phiếu nhập</h3>
+      <div class="form-row">
+        <input id="importDate" type="date">
+        <select id="importProduct"></select>
+        <input id="importCost" type="number" min="1" placeholder="Giá nhập">
+        <input id="importQty" type="number" min="1" placeholder="Số lượng">
+        <button class="btn" onclick="addImportLine()">Thêm sản phẩm</button>
+      </div>
+      <div id="draftImport"></div>
+      <button class="btn" onclick="finishImport()">Hoàn thành phiếu nhập</button>
+      <h3>Tra cứu phiếu nhập</h3>
+      <input id="importSearch" placeholder="Tìm theo mã phiếu" oninput="renderImports()">
+      <div id="importTable"></div>
+    </div>
+
+    <div id="prices" class="admin-panel hidden">
+      <h3>Quản lý tỷ lệ lợi nhuận và giá bán</h3>
+      <div class="form-row">
+        <select id="marginCategory"></select>
+        <input id="marginPercent" type="number" min="0" placeholder="Lợi nhuận %">
+        <button class="btn" onclick="saveCategoryMargin()">Lưu theo loại</button>
+      </div>
+      <div id="priceTable"></div>
+    </div>
+
+    <div id="orders" class="admin-panel hidden">
+      <h3>Quản lý đơn đặt hàng</h3>
+      <div class="form-row">
+        <label>Từ ngày <input id="orderStart" type="date"></label>
+        <label>Đến ngày <input id="orderEnd" type="date"></label>
+        <select id="orderStatus">
+          <option value="all">Tất cả trạng thái</option>
+          <option>Mới đặt</option>
+          <option>Đã xử lý</option>
+          <option>Đã giao</option>
+          <option>Đã hủy</option>
+        </select>
+        <button class="btn" onclick="renderAdminOrders()">Tra cứu</button>
+      </div>
+      <div id="adminOrderTable"></div>
+    </div>
+
+    <div id="inventory" class="admin-panel hidden">
+      <h3>Số lượng tồn kho</h3>
+      <div class="form-row">
+        <select id="stockCategory"></select>
+        <button class="btn" onclick="renderInventory()">Tra cứu</button>
+      </div>
+      <div id="inventoryTable"></div>
+      <h3>Lịch sử nhập - xuất</h3>
+      <div class="form-row">
+        <select id="movementProduct"></select>
+        <input id="movementStart" type="date">
+        <input id="movementEnd" type="date">
+        <button class="btn" onclick="renderMovements()">Tra cứu</button>
+      </div>
+      <div id="movementTable"></div>
+    </div>
+
+    <div id="stats" class="admin-panel hidden">
+      <h3>Thống kê</h3>
+      <div id="statistics" class="stat-grid"></div>
+    </div>
+  </section>
+</main>
+
+<div id="loginModal" class="modal hidden">
+  <div class="modal-box">
+    <button class="close" onclick="closeModal('loginModal')">×</button>
+    <h2>Đăng nhập</h2>
+    <label>Đăng nhập với</label>
+    <select id="loginRole">
+      <option value="customer">Khách hàng</option>
+      <option value="admin">Quản trị viên</option>
+    </select>
+    <input id="loginUsername" placeholder="Tên đăng nhập">
+    <input id="loginPassword" type="password" placeholder="Mật khẩu">
+    <button class="btn full" onclick="login()">Đăng nhập</button>
+    <p id="loginMessage"></p>
+    <small>Tài khoản admin mẫu: admin / 123456</small>
+  </div>
+</div>
+
+<div id="registerModal" class="modal hidden">
+  <div class="modal-box">
+    <button class="close" onclick="closeModal('registerModal')">×</button>
+    <h2>Đăng ký</h2>
+    <input id="regName" placeholder="Họ và tên">
+    <input id="regUsername" placeholder="Tên đăng nhập">
+    <input id="regEmail" type="email" placeholder="Email">
+    <input id="regPhone" placeholder="Số điện thoại">
+    <input id="regAddress" placeholder="Địa chỉ nhận hàng">
+    <input id="regPassword" type="password" placeholder="Mật khẩu">
+    <input id="regConfirm" type="password" placeholder="Nhập lại mật khẩu">
+    <button class="btn full" onclick="register()">Tạo tài khoản</button>
+    <p id="registerMessage"></p>
+  </div>
+</div>
+
+<div id="profileModal" class="modal hidden">
+  <div class="modal-box">
+    <button class="close" onclick="closeModal('profileModal')">×</button>
+    <h2>Thông tin cá nhân</h2>
+    <input id="profileName" placeholder="Họ tên">
+    <input id="profileEmail" type="email" placeholder="Email">
+    <input id="profilePhone" placeholder="Số điện thoại">
+    <input id="profileAddress" placeholder="Địa chỉ">
+    <button class="btn full" onclick="saveProfile()">Lưu thay đổi</button>
+    <p id="profileMessage"></p>
+  </div>
+</div>
+
+<div id="checkoutModal" class="modal hidden">
+  <div class="modal-box wide">
+    <button class="close" onclick="closeModal('checkoutModal')">×</button>
+    <h2>Xác nhận đặt hàng</h2>
+    <label>Địa chỉ nhận hàng</label>
+    <select id="addressType" onchange="toggleNewAddress()">
+      <option value="saved">Dùng địa chỉ tài khoản</option>
+      <option value="new">Nhập địa chỉ mới</option>
+    </select>
+    <input id="shipName" placeholder="Tên người nhận">
+    <input id="shipPhone" placeholder="Số điện thoại">
+    <input id="shipAddress" placeholder="Địa chỉ nhận hàng">
+    <input id="shipEmail" type="email" placeholder="Email">
+    <label>Phương thức thanh toán</label>
+    <select id="payment">
+      <option value="Tiền mặt khi nhận hàng">Tiền mặt khi nhận hàng (mặc định)</option>
+      <option value="Chuyển khoản">Chuyển khoản</option>
+      <option value="Thanh toán trực tuyến (mô phỏng)">Thanh toán trực tuyến</option>
+    </select>
+    <p id="checkoutAmount" class="checkout-amount"></p>
+    <button class="btn full" onclick="placeOrder()">Xác nhận mua hàng</button>
+  </div>
+</div>
+
+<div id="orderModal" class="modal hidden">
+  <div class="modal-box wide">
+    <button class="close" onclick="closeModal('orderModal')">×</button>
+    <div id="orderDetail"></div>
+  </div>
+</div>
+
+<footer>
+  <h2>LAPTOP STORE</h2>
+  <p>Cửa hàng laptop dành cho học tập, làm việc và giải trí.</p>
+  <small>© 2026 Laptop Store</small>
+</footer>
+
+<script src="app.js"></script>
+</body>
+</html>
